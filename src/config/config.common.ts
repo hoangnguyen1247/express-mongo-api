@@ -3,7 +3,7 @@ import ormconfig = require("../ormconfig");
 export const configCommon = {
     server: {
         host: "https://api.bookweb.io",
-        port: process.env.NODE_SERVER_PORT || 4203,
+        port: process.env.NODE_SERVER_PORT || 4201,
         webHost: "https://www.bookweb.io",
         debug: true,
     },

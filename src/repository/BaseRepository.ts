@@ -9,8 +9,6 @@ export interface IBaseRepository {
     update(entity): Promise<any>;
 
     delete(entity): Promise<any>;
-
-    deleteById(id): Promise<any>;
 }
 
 export abstract class BaseRepository<T> implements IBaseRepository {
@@ -22,7 +20,7 @@ export abstract class BaseRepository<T> implements IBaseRepository {
     }
 
     findMany = async (page: number, size: number) => {
-        return await this._baseRepository.findAndCount({
+        return await this._baseRepository.find({
             skip: page * size,
             take: size,
             order: {lastModifiedDate: "DESC"},
@@ -30,27 +28,19 @@ export abstract class BaseRepository<T> implements IBaseRepository {
     };
 
     findOneById = async (id: number) => {
-        return await this._baseRepository.findOne(id);
+        return await this._baseRepository.findOne({ id });
     };
 
     insert = async (entity: T) => {
-        return await this._baseRepository.save(entity);
+        return await this._baseRepository.insertOne(entity);
     };
 
     update = async (entity: T) => {
-        return await this._baseRepository.save(entity);
+        return await this._baseRepository.updateOne(entity);
     };
 
     delete = async (entity: T) => {
-        return await this._baseRepository.remove(entity);
-    };
-
-    deleteById = async(id: number) => {
-        const entity = await this._baseRepository.findOne(id);
-
-        if (entity) {
-            return await this._baseRepository.remove(entity);
-        }
+        return await this._baseRepository.deleteOne(entity);
     };
 }
 
@@ -79,10 +69,6 @@ export abstract class MongoBaseRepository implements IBaseRepository {
     };
 
     delete = async(entity) => {
-        return false;
-    };
-
-    deleteById = async(id) => {
         return false;
     };
 }

@@ -6,12 +6,12 @@ export const config = {
     server: objectAssign({}, configCommon.server, {
         host: "http://localhost:4203",
         webHost: "http://dev.bookweb.io",
-        port: 4203,
+        port: 4201,
     }),
     corsOptions: configCommon.corsOptions,
     swaggerConfig: {
         swaggerDefinition: objectAssign({}, configCommon.swaggerConfig.swaggerDefinition, {
-            "host": "localhost:4203",
+            "host": "localhost:4201",
         }),
         apis: configCommon.swaggerConfig.apis,
     },

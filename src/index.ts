@@ -13,22 +13,16 @@ import * as morgan from "morgan";
 import * as rfs from 'rotating-file-stream';
 import * as StatusMonitor from "express-status-monitor";
 import * as auth from 'http-auth';
-
 import * as swaggerJSDoc from "swagger-jsdoc";
 import * as swaggerUi from "swagger-ui-express";
+import { MongoConnectionOptions } from "typeorm/driver/mongodb/MongoConnectionOptions";
 
-import { 
-    MongoConnectionOptions
-} from "typeorm/driver/mongodb/MongoConnectionOptions";
-
-import { 
-    errorHandler, 
-    createNotFoundError,
-} from "./controller/error/ErrorHandler";
+import { errorHandler, createNotFoundError } from "./controller/error/ErrorHandler";
 
 import { DIContainer } from "./di/DIContainer";
 
 import { IndexRouter } from "./route/IndexRouter";
+import { PostRouter } from "./route/PostRoute";
 import { NotifierRouter } from "./route/NotifierRouter";
 
 import { config } from "./config";
@@ -65,9 +59,10 @@ createConnection(config.database.mongodb.config as MongoConnectionOptions)
         const options = config.swaggerConfig;
         const swaggerSpec = swaggerJSDoc(options);
         app.use('/swagger', auth.connect(auth.basic({ realm: 'Swagger Area' }, (user, pass, callback) => {
-            callback(user === 'username' && pass === 'Bookw3b@12345');
+            callback(user === 'expressapi' && pass === 'expressapi123');
         })), swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+        app.use("/posts", PostRouter(diContainer));
         app.use("/notifications", NotifierRouter(diContainer));
 
         // catch 404 and forward to error handler
@@ -77,9 +72,9 @@ createConnection(config.database.mongodb.config as MongoConnectionOptions)
         app.use(errorHandler);
 
         // start express server
-        app.listen(config.server.port);
-
-        console.log(`Express server has started on port ${config.server.port}.`);
+        app.listen(config.server.port, () => {
+            console.log(`Express server has started on port ${config.server.port}.`);
+        });
     })
     .catch(error => {
         console.log(error)

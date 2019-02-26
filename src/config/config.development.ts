@@ -5,7 +5,7 @@ import { configCommon } from './config.common';
 export const config = {
     server: objectAssign({}, configCommon.server, {
         host: "https://apidev.bookweb.io",
-        port: 4103,
+        port: 4101,
         webHost: "https://dev.bookweb.io",
     }),
     corsOptions: configCommon.corsOptions,

@@ -6,7 +6,7 @@ export const config = {
     server: objectAssign({}, configCommon.server, {
         host: "https://apidev.bookweb.io",
         webHost: "https://dev.bookweb.io",
-        port: 4103,
+        port: 4101,
     }),
     corsOptions: configCommon.corsOptions,
     swaggerConfig: {
