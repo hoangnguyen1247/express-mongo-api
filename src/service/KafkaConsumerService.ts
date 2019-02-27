@@ -22,7 +22,7 @@ export class KafkaConsumerService extends BaseService implements IKafkaService {
             const client = new kafka.KafkaClient({kafkaHost: 'localhost:9092'});
             const offset = new kafka.Offset(client);
             const options = {
-                groupId: "bookwebNotifierGroup",
+                groupId: "kafka-consumer-group",
                 kafkaHost: 'localhost:9092',
                 host: 'localhost:2181',
             };
@@ -35,8 +35,8 @@ export class KafkaConsumerService extends BaseService implements IKafkaService {
                 this.handleOnMessage(message);
             });
             
-            this._consumer.on('error', (err) => {
-                console.log('error', err);
+            this._consumer.on('error', (error) => {
+                console.log('error', error);
             });
         } catch(error) {
             console.log("Kafka connect error: " + error);

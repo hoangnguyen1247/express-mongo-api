@@ -4,16 +4,14 @@ import { RedisService } from "../service/RedisService";
 import { SendGridClientService } from '../service/SendGridClientService';
 import { VietGuysService } from '../service/sms/VietGuysService';
 
-import { CategoryRepository } from '../repository/CategoryRepository';
-import { PostRepository } from '../repository/PostRepository';
-
 import { NotificationService } from '../service/NotificationService';
 import { BunyanLogger } from "../service/BunyanLoggerService";
 import { SendGridService } from '../service/email/SendGridService';
 import { KafkaConsumerService } from '../service/KafkaConsumerService';
 
-import { CategoryService } from '../service/CategoryService';
-import { PostService } from '../service/PostService';
+import { PostLogRepository } from '../repository/PostLogRepository';
+
+import { PostLogService } from '../service/PostLogService';
 
 export class DIContainer {
 
@@ -24,8 +22,7 @@ export class DIContainer {
         this._container.register("bunyanLogger", BunyanLogger);
 
         // Repositories
-        this._container.register("categoryRepository", CategoryRepository);
-        this._container.register("postRepository", PostRepository);
+        this._container.register("postLogRepository", PostLogRepository);
 
         // Common Services
         this._container.register("redisService", RedisService);
@@ -39,11 +36,8 @@ export class DIContainer {
         this._container.register("notificationService", NotificationService)
             .addArgument(new Reference("emailService"))
             .addArgument(new Reference("smsService"));
-        this._container.register("categoryService", CategoryService)
-            .addArgument(new Reference("categoryRepository"));
-        this._container.register("postService", PostService)
-            .addArgument(new Reference("postRepository"))
-            .addArgument(new Reference("categoryRepository"));
+        this._container.register("postLogService", PostLogService)
+            .addArgument(new Reference("postLogRepository"));
 
         return this._container;
     }

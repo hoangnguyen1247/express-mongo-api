@@ -2,8 +2,8 @@ import "reflect-metadata";
 if (process.env.NODE_ENV === "local") {
     require('ts-node').register();
 }
-import { createConnection } from "typeorm";
 import * as express from "express";
+import * as mongoose from "mongoose";
 import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
 import * as cors from 'cors';
@@ -15,20 +15,24 @@ import * as StatusMonitor from "express-status-monitor";
 import * as auth from 'http-auth';
 import * as swaggerJSDoc from "swagger-jsdoc";
 import * as swaggerUi from "swagger-ui-express";
-import { MongoConnectionOptions } from "typeorm/driver/mongodb/MongoConnectionOptions";
 
 import { errorHandler, createNotFoundError } from "./controller/error/ErrorHandler";
 
 import { DIContainer } from "./di/DIContainer";
 
 import { IndexRouter } from "./route/IndexRouter";
-import { PostRouter } from "./route/PostRoute";
+import { PostLogRouter } from "./route/PostLogRoute";
 import { NotifierRouter } from "./route/NotifierRouter";
 
 import { config } from "./config";
 
-createConnection(config.database.mongodb.config as MongoConnectionOptions)
-    .then(async connection => {
+mongoose.connect(config.database.mongodb.config, 
+    (error) => {
+        if (error) {
+            console.error('Please make sure Mongodb is installed and running!'); // eslint-disable-line no-console
+            throw error;
+        }
+
         // create express app
         const app = express();
         const diContainer = (new DIContainer()).createRegister();
@@ -62,7 +66,7 @@ createConnection(config.database.mongodb.config as MongoConnectionOptions)
             callback(user === 'expressapi' && pass === 'expressapi123');
         })), swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-        app.use("/posts", PostRouter(diContainer));
+        app.use("/logs", PostLogRouter(diContainer));
         app.use("/notifications", NotifierRouter(diContainer));
 
         // catch 404 and forward to error handler
