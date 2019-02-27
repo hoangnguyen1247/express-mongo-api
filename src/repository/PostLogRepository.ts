@@ -10,9 +10,10 @@ export class PostLogRepository implements IPostLogRepository {
 
     findMany = async (page, size) => {
         const data = await PostLogModel
-            .find()
-            .skip(page * size)
-            .take(size);
+            .find({}, {}, {
+                skip: page * size,
+                limit: parseInt(size, 10),
+            });
 
         const count = await PostLogModel.count({});
 

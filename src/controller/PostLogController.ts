@@ -46,6 +46,8 @@ export class PostController extends BaseController {
         const content = req.body.content || "";
         const categoryId = req.body.categoryId || null;
         const featuredImageUrl = req.body.featuredImageUrl || "";
+        const cuid = req.body.cuid || "";
+        const name = req.body.name || "";
 
         const user = req.query.user;
 
@@ -69,6 +71,8 @@ export class PostController extends BaseController {
             content: content,
             approvedContent: "",
             featuredImageUrl,
+            cuid,
+            name,
             // createdBy: user.id,
             // lastModifiedBy: user.id,
         });

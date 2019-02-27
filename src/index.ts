@@ -15,6 +15,7 @@ import * as StatusMonitor from "express-status-monitor";
 import * as auth from 'http-auth';
 import * as swaggerJSDoc from "swagger-jsdoc";
 import * as swaggerUi from "swagger-ui-express";
+import * as format from "string-template";
 
 import { errorHandler, createNotFoundError } from "./controller/error/ErrorHandler";
 
@@ -26,7 +27,15 @@ import { NotifierRouter } from "./route/NotifierRouter";
 
 import { config } from "./config";
 
-mongoose.connect(config.database.mongodb.config, 
+const mongooseConnectionString = format(`mongodb://{username}:{password}@{host}:{port}/{database}`, {
+    username: config.database.mongodb.config.username,
+    password: config.database.mongodb.config.password,
+    host: config.database.mongodb.config.host,
+    port: config.database.mongodb.config.port,
+    database: config.database.mongodb.config.database,
+});
+
+mongoose.connect(mongooseConnectionString, 
     (error) => {
         if (error) {
             console.error('Please make sure Mongodb is installed and running!'); // eslint-disable-line no-console

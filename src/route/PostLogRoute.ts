@@ -10,7 +10,7 @@ export function PostLogRouter(diContainer) {
     const router = express.Router();
     const postController = new PostController(diContainer);
 
-    router.route("/")
+    router.route("/posts")
         .get(postController.findMany)
         .post(postController.insert);
 
@@ -18,7 +18,7 @@ export function PostLogRouter(diContainer) {
     //     .get(postController.findManyCategories)
     //     .post(postController.insertCategory);
 
-    router.route("/:id")
+    router.route("/posts/:id")
         .get(postController.findOneById)
         .put(postController.update)
         .delete(postController.delete);

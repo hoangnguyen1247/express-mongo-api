@@ -14,4 +14,4 @@ postLog.pre("save", () => {
 
 });
 
-export const PostLogModel = mongoose.model('PostLog', postLog);
+export const PostLogModel = mongoose.model('PostLog', postLog, "post_log");
