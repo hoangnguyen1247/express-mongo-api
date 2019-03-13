@@ -1,13 +1,14 @@
 import * as mongoose from 'mongoose';
 
 const postLog = new mongoose.Schema({
-    name:               { type: 'String', required: true },
-    title:              { type: 'String', required: true },
-    content:            { type: 'String', required: true },
-    slug:               { type: 'String', required: true },
-    cuid:               { type: 'String', required: true },
+    action:             { type: 'String', required: true },
+    entity:             { type: 'String', required: true },
+    previousState:      { type: 'Object', required: false },
+    currentState:       { type: 'Object', required: true },
     createdDate:        { type: 'Date', default: Date.now, required: true },
+    createdBy:          { type: 'Number', required: false },
     lastModifiedDate:   { type: 'Date', default: Date.now, required: true },
+    lastModifiedBy:     { type: 'Number', required: false },
 });
 
 postLog.pre("save", () => {

@@ -10,7 +10,6 @@ import { BaseService, IRepositoryService } from "./BaseService";
 
 export interface IPostLogService extends IRepositoryService {
 
-    findOneBySlug(slug): Promise<any>;
 }
 
 export class PostLogService extends BaseService implements IPostLogService {
@@ -140,23 +139,6 @@ export class PostLogService extends BaseService implements IPostLogService {
             return {
                 data: {
                     code: 200,
-                },
-            };
-        } catch (error) {
-            return { error: createError(500, error) };
-        }
-    };
-
-    findOneBySlug = async (slug) => {
-        try {
-            const post = await this._postLogRepository.findOneBySlug(slug);
-
-            if (!post) return { error: createError(404) };
-
-            return {
-                data: {
-                    code: 200,
-                    post: post,
                 },
             };
         } catch (error) {

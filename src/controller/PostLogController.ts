@@ -41,40 +41,16 @@ export class PostController extends BaseController {
     };
 
     insert = async (req: Request, res: Response, next: NextFunction) => {
-        const title = req.body.title || "";
-        const slug = req.body.slug || "";
-        const content = req.body.content || "";
-        const categoryId = req.body.categoryId || null;
-        const featuredImageUrl = req.body.featuredImageUrl || "";
-        const cuid = req.body.cuid || "";
-        const name = req.body.name || "";
-
-        const user = req.query.user;
-
-        if (!title && !content) {
-            return next(createError(400));
-        }
-        // if (!user) return next(createError(401));
+        const action = req.body.action || "";
+        const entity = req.body.entity || "";
+        const previousState = req.body.previousState || {};
+        const currentState = req.body.currentState || {};
 
         const { error, data } = await this._postLogService.insert({
-            // writerId: user.id,
-            // writer: {
-            //     firstName: user.firstName,
-            //     lastName: user.lastName,
-            //     fullName: user.fullName,
-            // },
-            category: { 
-                id: categoryId,
-            },
-            title: title,
-            slug: slug || slug(title),
-            content: content,
-            approvedContent: "",
-            featuredImageUrl,
-            cuid,
-            name,
-            // createdBy: user.id,
-            // lastModifiedBy: user.id,
+            action,
+            entity,
+            previousState,
+            currentState,
         });
 
         if (error) return next(error);
@@ -84,28 +60,17 @@ export class PostController extends BaseController {
 
     update = async (req: Request, res: Response, next: NextFunction) => {
         const id = req.params.id;
-        const title = req.body.title;
-        const slug = req.body.slug;
-        const categoryId = req.body.categoryId || null;
-        const content = req.body.content;
-        const featuredImageUrl = req.body.featuredImageUrl;
-
-        const user = req.query.user;
-
-        if (!title && !content) {
-            return next(createError(400));
-        }
-        if (!user) return next(createError(401));
+        const action = req.body.action || "";
+        const entity = req.body.entity || "";
+        const previousState = req.body.previousState || {};
+        const currentState = req.body.currentState || {};
 
         const { error, data } = await this._postLogService.update(id, {
-            category: { 
-                id: categoryId,
-            },
-            title,
-            slug,
-            content,
-            featuredImageUrl,
-            lastModifiedBy: user.id,
+            id,
+            action,
+            entity,
+            previousState,
+            currentState,
         });
 
         if (error) return next(error);
@@ -116,12 +81,9 @@ export class PostController extends BaseController {
     delete = async (req: Request, res: Response, next: NextFunction) => {
         const id = req.params.id || null;
 
-        const user = req.query.user;
-
         if (!id) {
             return next(createError(400));
         }
-        if (!user) return next(createError(401));
 
         const { error, data } = await this._postLogService.delete(id);
 
