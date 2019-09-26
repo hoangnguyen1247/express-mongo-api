@@ -1,33 +1,17 @@
-import * as mongoose from 'mongoose';
+import { isObject } from "../utils/TypeUtils";
 
-import { isObject } from '../utils/TypeUtils';
+import { ISetting, settingSchema, SETTING_SUMMARY_COLUMNS } from "../entity/Setting";
+import { ISettingRepository } from "../abstract/repository/ISettingRepository";
+import { SettingConnector } from './SettingConnector';
+import { BaseRepository } from "./BaseRepository";
 
-import { IBaseRepository } from "../abstract/repository/IBaseRepository";
+export class SettingRepository extends BaseRepository<ISetting> implements ISettingRepository {
 
-export abstract class BaseRepository<T extends mongoose.Document> implements IBaseRepository {
-
-    protected _baseModel: mongoose.Model<T>;
-
-    protected constructor(baseRepository) {
-        this._baseModel = baseRepository;
+    constructor(settingsConnector: SettingConnector) {
+        super(settingsConnector.getConnection().model("Setting", settingSchema, "setting")); // Model name, Schema, Collect name
     }
 
-    findMany = async (page: number, size: number) => {
-        const data = await this._baseModel
-            .find({}, {}, {
-                skip: page * size,
-                limit: size,
-            });
-
-        const count = await this._baseModel.countDocuments({});
-
-        return [
-            data,
-            count,
-        ];
-    };
-
-    search = async (searchKey, searchFields, filterMap, page, size, sortMap, resType) => {
+    search = async(searchKey, searchFields, filterMap, page, size, sortMap, resType) => {
         const query = this._baseModel.find();
         const countQuery = this._baseModel.countDocuments();
 
@@ -35,7 +19,7 @@ export abstract class BaseRepository<T extends mongoose.Document> implements IBa
         // Select
         const allowResTypes = ["list"];
         const resTypeMap = {
-            list: ["id", "createdDate"],
+            list: SETTING_SUMMARY_COLUMNS,
         }
         const selectFields = allowResTypes.includes(resType) ? resTypeMap[resType] : resTypeMap["list"];
         if (Array.isArray(selectFields) && selectFields.length > 0) {
@@ -62,6 +46,8 @@ export abstract class BaseRepository<T extends mongoose.Document> implements IBa
         // Filter
         const allowFilterCols = [
             "createdDate",
+            "type",
+            "name",
         ];
         if (isObject(filterMap) && Object.keys(filterMap).length > 0) {
             Object.keys(filterMap)
@@ -113,27 +99,69 @@ export abstract class BaseRepository<T extends mongoose.Document> implements IBa
         ];
     };
 
-    findOneById = async (id: number) => {
-        return await this._baseModel.findById(id);
+    findManyByType = async (type, page, size) => {
+        const data = await this._baseModel
+            .find({ type: type }, {}, {
+                skip: page * size,
+                limit: parseInt(size, 10),
+            });
+
+        const count = await this._baseModel.countDocuments({ type: type });
+
+        return [
+            data,
+            count,
+        ];
     };
 
-    findOne = async (filterMap, resType): Promise<any> => {
-        return await this._baseModel.findOne(filterMap);
+    findManyByEntityId = async (entityId, page, size) => {
+        const data = await this._baseModel
+            .find({ entityId: entityId }, {}, {
+                skip: page * size,
+                limit: parseInt(size, 10),
+            });
+
+        const count = await this._baseModel.countDocuments({});
+
+        return [
+            data,
+            count,
+        ];
     };
 
-    insert = async (entity: T) => {
-        return await this._baseModel.create(entity);
-    };
+    findOne = async(filterMap, resType): Promise<any> => {
+        const query = this._baseModel.findOne();
 
-    insertMany = async (entities: T[]) => {
-        return await this._baseModel.insertMany(entities);
-    };
-    
-    update = async (id: number, entity: T) => {
-        return await this._baseModel.findByIdAndUpdate(id, entity, { new: true });
-    };
+        //
+        // Select
+        const allowResTypes = ["list"];
+        const resTypeMap = {
+            list: SETTING_SUMMARY_COLUMNS,
+        }
+        const selectFields = allowResTypes.includes(resType) ? resTypeMap[resType] : resTypeMap["list"];
+        if (Array.isArray(selectFields) && selectFields.length > 0) {
+            query.select(selectFields.reduce((accumulator, element, index) => 
+                index === 0 ? (accumulator + element) : (accumulator + " " + element), ''));
+        }
 
-    delete = async (id: number) => {
-        return await this._baseModel.findByIdAndRemove(id);
+        //
+        // Filter
+        const allowFilterCols = [
+            "name",
+            "createdDate",
+        ];
+        if (isObject(filterMap) && Object.keys(filterMap).length > 0) {
+            Object.keys(filterMap)
+                .filter(fItem => allowFilterCols.indexOf(fItem) > -1)
+                .forEach(mItem => {
+                    if (mItem === "name") {
+                        query.where({ [mItem]: { "$regex": filterMap[mItem], "$options": "i" } });
+                    } else {
+                        query.where({ [mItem]: filterMap[mItem] });
+                    }
+                });
+        }
+
+        return await query.exec();
     };
 }

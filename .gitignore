@@ -17,3 +17,5 @@ tmp/
 temp/
 src/**/*.js
 src/**/*.js.map
+
+package-lock.json

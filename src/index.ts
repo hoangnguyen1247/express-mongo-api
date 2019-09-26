@@ -1,94 +1,74 @@
 import "reflect-metadata";
-if (process.env.NODE_ENV === "local") {
+if (process.env.NODE_ENV === "local" && process.env.DEBUG === "true") {
     require('ts-node').register();
 }
 import * as express from "express";
-import * as mongoose from "mongoose";
 import * as bodyParser from "body-parser";
 import * as cookieParser from "cookie-parser";
-import * as cors from 'cors';
+import * as favicon from "serve-favicon";
 import * as fs from "fs";
 import * as path from "path";
 import * as morgan from "morgan";
 import * as rfs from 'rotating-file-stream';
 import * as StatusMonitor from "express-status-monitor";
-import * as auth from 'http-auth';
-import * as swaggerJSDoc from "swagger-jsdoc";
-import * as swaggerUi from "swagger-ui-express";
-import * as format from "string-template";
+
+import { config } from "./config";
 
 import { errorHandler, createNotFoundError } from "./controller/error/ErrorHandler";
 
 import { DIContainer } from "./di/DIContainer";
 
 import { IndexRouter } from "./route/IndexRouter";
-import { PostLogRouter } from "./route/PostLogRoute";
-import { NotifierRouter } from "./route/NotifierRouter";
+import { SettingRouter } from "./route/SettingRoute";
 
-import { config } from "./config";
+import { SettingConnector } from "./repository/SettingConnector";
 
-const mongooseConnectionString = format(`mongodb://{username}:{password}@{host}:{port}/{database}`, {
-    username: config.database.mongodb.config.username,
-    password: config.database.mongodb.config.password,
-    host: config.database.mongodb.config.host,
-    port: config.database.mongodb.config.port,
-    database: config.database.mongodb.config.database,
-});
+const main = async () => {
+    // create express app
+    const app = express();
+    const diContainer = (new DIContainer()).createRegister();
+    const settingConnector = await (diContainer.get("settingConnector") as SettingConnector).createConnection();
+    const kafkaConsumerService = diContainer.get("kafkaConsumerService");
 
-mongoose.connect(mongooseConnectionString, 
-    (error) => {
-        if (error) {
-            console.error('Please make sure Mongodb is installed and running!'); // eslint-disable-line no-console
-            throw error;
-        }
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: false }));
+    app.use(cookieParser());
 
-        // create express app
-        const app = express();
-        const diContainer = (new DIContainer()).createRegister();
-        const kafkaConsumerService = diContainer.get("kafkaConsumerService");
+    const statusMonitor = StatusMonitor({ path: '' });
+    app.use(statusMonitor.middleware);
 
-        app.use(bodyParser.json());
-        app.use(bodyParser.urlencoded({ extended: false }));
-        app.use(cookieParser());
+    const logDirectory = path.resolve(__dirname, "..", 'log');
+    fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory);
 
-        const statusMonitor = StatusMonitor({ path: '' });
-        app.use(statusMonitor.middleware);
+    const accessLogStream = rfs('access.log', {
+        interval: '1d',
+        path: logDirectory
+    });
+    app.use(morgan('combined', { stream: accessLogStream }));
 
-        const logDirectory = path.resolve(__dirname, "..", 'log');
-        fs.existsSync(logDirectory) || fs.mkdirSync(logDirectory);
+    app.use("/", IndexRouter(diContainer));
 
-        const accessLogStream = rfs('access.log', {
-            interval: '1d',
-            path: logDirectory
-        });
-        app.use(morgan('combined', { stream: accessLogStream }));
+    app.use(express.static(path.resolve(__dirname, '..', 'public')));
+    app.use(favicon(path.resolve(__dirname, 'public', 'favicon.ico')));
 
-        app.use(cors(config.corsOptions));
+    app.use("/settings", SettingRouter(diContainer));
 
-        app.use(express.static(path.resolve(__dirname, '..', 'public')));
+    // catch 404 and forward to error handler
+    app.use(createNotFoundError);
 
-        app.use("/", IndexRouter(diContainer));
+    // error handler
+    app.use(errorHandler);
 
-        const options = config.swaggerConfig;
-        const swaggerSpec = swaggerJSDoc(options);
-        app.use('/swagger', auth.connect(auth.basic({ realm: 'Swagger Area' }, (user, pass, callback) => {
-            callback(user === 'expressapi' && pass === 'expressapi123');
-        })), swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    // start express server
+    app.listen(config.server.port, () => {
+        console.log(`Express server has started on port ${config.server.port}.`);
+    });
+}
 
-        app.use("/logs", PostLogRouter(diContainer));
-        app.use("/notifications", NotifierRouter(diContainer));
+main()
+    .then(res => {
 
-        // catch 404 and forward to error handler
-        app.use(createNotFoundError);
-
-        // error handler
-        app.use(errorHandler);
-
-        // start express server
-        app.listen(config.server.port, () => {
-            console.log(`Express server has started on port ${config.server.port}.`);
-        });
     })
     .catch(error => {
-        console.log(error)
+        console.log(error);
     });

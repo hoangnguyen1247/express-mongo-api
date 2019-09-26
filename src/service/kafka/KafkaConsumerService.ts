@@ -1,21 +1,14 @@
 import * as kafka from 'kafka-node';
 
-import { BaseService } from "./BaseService";
-import { INotificationService } from './NotificationService';
+import { IKafkaConsumerService } from '../../abstract/service/kafka/IKafkaConsumerService';
+import { BaseService } from "../BaseService";
 
-export interface IKafkaService {
-
-}
-
-export class KafkaConsumerService extends BaseService implements IKafkaService {
+export class KafkaConsumerService extends BaseService implements IKafkaConsumerService {
 
     private _consumer;
-    private _notificationService: INotificationService;
 
-    constructor(notificationService) {
+    constructor() {
         super();
-
-        this._notificationService = notificationService;
 
         try {
             const ConsumerGroup = kafka.ConsumerGroup;
@@ -56,7 +49,7 @@ export class KafkaConsumerService extends BaseService implements IKafkaService {
     handleVerifyEmail = async (value) => {
         try {
             const formattedValue = JSON.parse(value);
-            await this._notificationService.verifyEmail(formattedValue.channels, formattedValue.dataObjs);
+            // await this._notificationService.verifyEmail(formattedValue.channels, formattedValue.dataObjs);
         } catch (error) {
             console.log("Kafka consumer error: " + error);
         }

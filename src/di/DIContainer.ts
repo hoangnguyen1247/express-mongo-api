@@ -1,17 +1,14 @@
 import { ContainerBuilder, Reference } from 'node-dependency-injection';
 
+import { SettingConnector } from '../repository/SettingConnector';
+
+import { SettingRepository } from '../repository/SettingRepository';
+
 import { RedisService } from "../service/RedisService";
-import { SendGridClientService } from '../service/SendGridClientService';
-import { VietGuysService } from '../service/sms/VietGuysService';
+import { KafkaConsumerService } from '../service/kafka/KafkaConsumerService';
+import { BunyanLogger } from "../service/log/BunyanLoggerService";
 
-import { NotificationService } from '../service/NotificationService';
-import { BunyanLogger } from "../service/BunyanLoggerService";
-import { SendGridService } from '../service/email/SendGridService';
-import { KafkaConsumerService } from '../service/KafkaConsumerService';
-
-import { PostLogRepository } from '../repository/PostLogRepository';
-
-import { PostLogService } from '../service/PostLogService';
+import { SettingService } from '../service/SettingService';
 
 export class DIContainer {
 
@@ -21,23 +18,20 @@ export class DIContainer {
         // Utils
         this._container.register("bunyanLogger", BunyanLogger);
 
+        // Database connector
+        this._container.register("settingConnector", SettingConnector);
+
         // Repositories
-        this._container.register("postLogRepository", PostLogRepository);
+        this._container.register("settingRepository", SettingRepository)
+            .addArgument(new Reference("settingConnector"));
 
         // Common Services
         this._container.register("redisService", RedisService);
-        this._container.register("emailService", SendGridService);
-        this._container.register("smsService", VietGuysService);
-        this._container.register("sendGridClientService", SendGridClientService);
-        this._container.register("kafkaConsumerService", KafkaConsumerService)
-            .addArgument(new Reference("notificationService"));
+        this._container.register("kafkaConsumerService", KafkaConsumerService);
 
         // Services
-        this._container.register("notificationService", NotificationService)
-            .addArgument(new Reference("emailService"))
-            .addArgument(new Reference("smsService"));
-        this._container.register("postLogService", PostLogService)
-            .addArgument(new Reference("postLogRepository"));
+        this._container.register("settingService", SettingService)
+            .addArgument(new Reference("settingRepository"));
 
         return this._container;
     }

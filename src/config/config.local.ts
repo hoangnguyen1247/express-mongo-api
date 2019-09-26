@@ -4,34 +4,15 @@ import { configCommon } from './config.common';
 
 export const config = {
     server: objectAssign({}, configCommon.server, {
-        host: "http://localhost:4203",
-        webHost: "http://dev.bookweb.io",
         port: 4201,
     }),
-    corsOptions: configCommon.corsOptions,
-    swaggerConfig: {
-        swaggerDefinition: objectAssign({}, configCommon.swaggerConfig.swaggerDefinition, {
-            "host": "localhost:4201",
-        }),
-        apis: configCommon.swaggerConfig.apis,
-    },
     database: {
-        mongodb: {
-            config: objectAssign({}, configCommon.database.mongodb.config, {
+        expressSetting: {
+            config: objectAssign({}, configCommon.database.expressSetting.config, {
                 "synchronize": true,
-                "port": 27018,
+                "port": 27017,
             }),
         },
-    },
-    facebookPage: configCommon.facebookPage,
-    email: {
-        gmail: configCommon.email.gmail,
-        sendgrid: configCommon.email.sendgrid,
-        mailgun: configCommon.email.mailgun,
-    },
-    sms: {
-        template: configCommon.sms.template,
-        vietguys: configCommon.sms.vietguys, 
     },
     redis: configCommon.redis,
 };
